@@ -33,7 +33,7 @@ The latter defines a class called RollingMedian that allows for calculating the 
 <h2>Dependencies and packages:</h2>
 pandas: http://pandas.pydata.org/
 
-<h2>Running instructions:</h2>
+Running instructions:
 - The project was written in Python 3;
 - my computer has both versions of Python, 2 and 3, therefore my run.sh file explicitly states which version of Python to run, i.e. python3 command.
 - Before running, install pandas (see dependencies above).
