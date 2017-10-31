@@ -25,18 +25,18 @@ The dataframe_dict is created in order to place data used for medianvals_by_date
 The RollingMedian object calculates rolling medians using min heap and max heap, which is a well-known algorithm for this purpose.
 
 The source code resides in /src/ folder; the folder contains:
-1) process_donors_data.py (main program),
-2) helper_functions.py,
-3) rolling_median.py.
+1) process_donors_data.py (main program)
+2) helper_functions.py
+3) rolling_median.py
 The latter defines a class called RollingMedian that allows for calculating the rolling median, as well as getting the total amount and the number of contributions streamed so far.
 
 Dependencies and packages:
 - pandas: http://pandas.pydata.org/
 
 Running instructions:
-- The project was written in Python 3;
-- my system has both versions of Python, 2 and 3, therefore my run.sh file explicitly states which version of Python to run, i.e. python3 command.
-- Before running, install pandas (see dependencies above).
+- the project was written in Python 3;
+- my system has both versions of Python, 2 and 3, therefore my run.sh file explicitly states which version of Python to run, i.e. python3 command
+- before running, install pandas (see dependencies above).
 Command:
 $ python3 ./src/process_donors_data.py ./input/itcont.txt ./output/medianvals_by_zip.txt ./output/medianvals_by_date.txt
 Arguments: program source code file, input file, output file (zip codes), output file (dates)
@@ -45,11 +45,11 @@ The text processing speed for MacBook Pro (Retina, 13-inch, Early 2013) is ~4.5 
 An 828.8 MB file has been processed in 184.26s.
 
 Input file considerations:
-- if zip code is numeric and at least 5 characters, it is considered to be valid; zip codes aren't cross checked with all valid zip code database for a given state,
+- if zip code is numeric and at least 5 characters, it is considered to be valid; zip codes aren't cross checked with all valid zip code database for a given state;
 - the contribution amount is assumed to be an integer; the rounding rules specified in the assignment are being applied ONLY to the median calculations; if the contribution amount is a floating point number, the entry will be considered invalid.
 
 Running the program from the command line will result in two output files:
-- medianvals_by_zip.txt: containing a calculated running median, total dollar amount and total number of contributions by recipient and zip code
+- medianvals_by_zip.txt: containing a calculated running median, total dollar amount and total number of contributions by recipient and zip code;
 - medianvals_by_date.txt: containing the calculated median, total dollar amount and total number of contributions by recipient and date.
 
 Tests:
