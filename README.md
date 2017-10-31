@@ -35,7 +35,7 @@ Dependencies and packages:
 
 Running instructions:
 - The project was written in Python 3;
-- my computer has both versions of Python, 2 and 3, therefore my run.sh file explicitly states which version of Python to run, i.e. python3 command.
+- my system has both versions of Python, 2 and 3, therefore my run.sh file explicitly states which version of Python to run, i.e. python3 command.
 - Before running, install pandas (see dependencies above).
 Command:
 $ python3 ./src/process_donors_data.py ./input/itcont.txt ./output/medianvals_by_zip.txt ./output/medianvals_by_date.txt
