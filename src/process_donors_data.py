@@ -3,7 +3,7 @@ import sys
 import copy
 import pandas as pd
 from helper_functions import *
-from red_black_tree import *
+from rolling_median import *
 
 
 # read arguments for shell script
@@ -11,6 +11,7 @@ input_filename = sys.argv[1]
 output_filename_zip = sys.argv[2]
 output_filename_date = sys.argv[3]
 
+# relevant indeces for the given file format
 CMTE_ID_index = 0
 ZIP_CODE_index = 10
 DATE_index = 13
@@ -19,32 +20,29 @@ OTHER_ID_index = 15
 TOTAL_COLUMNS = 21
 
 
-
-def format_relevant_entries(all_entries_list):
+# prepare data for processing by getting the relevant data
+def get_relevant_entries(all_entries_list):
     
     relevant_indeces = [CMTE_ID_index, ZIP_CODE_index, DATE_index, TRANSACTION_AMT_index]
     relevant_entries_list = []
     
     for index in relevant_indeces:
-        # if provided zip-code has 9 digits, use only the first 5
-        if index == 10 and len(all_entries_list[index]) > 5:
-            all_entries_list[index] = all_entries_list[index][:5]
-            relevant_entries_list.append(all_entries_list[index][:5])        
-        else:
-            relevant_entries_list.append(all_entries_list[index])
+        relevant_entries_list.append(all_entries_list[index])
             
     return relevant_entries_list
 
 
+# create a dictionary entry for a new ID
 def create_id_entry(current_id, current_zip, current_date, current_contrib):
     
     if is_zip_valid(current_zip) or is_date_valid(current_date):
         recipient_info_dict[current_id] = []
-        rbt = RedBlackTree()
+        roll_median = RollingMedian()
         
         if is_zip_valid(current_zip):
-            rbt.add(current_contrib)
-            recipient_info_dict[current_id].append({current_zip: copy.deepcopy(rbt)})
+            current_zip = format_zip(current_zip)
+            roll_median.add(current_contrib)
+            recipient_info_dict[current_id].append({current_zip: copy.deepcopy(roll_median)})
             
             write_to_zipcode_file(current_id, 
                               current_zip, 
@@ -56,27 +54,30 @@ def create_id_entry(current_id, current_zip, current_date, current_contrib):
             recipient_info_dict[current_id].append({})
 
         if is_date_valid(current_date):
-            rbt = RedBlackTree()
-            rbt.add(current_contrib)
-            recipient_info_dict[current_id].append({current_date: copy.deepcopy(rbt)})
+            roll_median = RollingMedian()
+            roll_median.add(current_contrib)
+            recipient_info_dict[current_id].append({current_date: copy.deepcopy(roll_median)})
         else:
             recipient_info_dict[current_id].append({})
         
-                             
+
+# create a dictionary entry for a new date (existing ID)
 def create_date_entry(current_id, current_date, current_contrib):
                              
     if is_date_valid(current_date):
-        rbt = RedBlackTree()
-        rbt.add(current_contrib)
-        recipient_info_dict[current_id][1][current_date] = copy.deepcopy(rbt)
+        roll_median = RollingMedian()
+        roll_median.add(current_contrib)
+        recipient_info_dict[current_id][1][current_date] = copy.deepcopy(roll_median)
         
-                             
+
+# create a dictionary entry for a new zip (existing ID)
 def create_zip_entry(current_id, current_zip, current_date, current_contrib):
                              
     if is_zip_valid(current_zip):
-        rbt = RedBlackTree()
-        rbt.add(current_contrib)
-        recipient_info_dict[current_id][0][current_zip] = copy.deepcopy(rbt)
+        current_zip = format_zip(current_zip)
+        roll_median = RollingMedian()
+        roll_median.add(current_contrib)
+        recipient_info_dict[current_id][0][current_zip] = copy.deepcopy(roll_median)
         
         write_to_zipcode_file(current_id, 
                               current_zip, 
@@ -101,10 +102,10 @@ if __name__ == "__main__":
     dataframe_dict = {"ID":[], "Date":[], "Median":[], "Number Contributions":[], "Total":[]}
     recipient_info_dict = {}
 
-    # recipient_info_dict = {'id1':[{'zip1': rbt_zip1, 'zip2': rbt_zip2, ...},
-    #                           {'date1': rbt_date1, 'date2': rbt_date2, ...}],
-    #                       'id2':[{'zip1': rbt_zip1, 'zip2': rbt_zip2, ...},
-    #                          {'date1': rbt_date1, 'date2': rbt_date2, ...}], ...other id's}
+    # recipient_info_dict = {'id1':[{'zip1': roll_median_zip1, 'zip2': roll_median_zip2, ...},
+    #                           {'date1': roll_median_date1, 'date2': roll_median_date2, ...}],
+    #                       'id2':[{'zip1': roll_median_zip1, 'zip2': roll_median_zip2, ...},
+    #                          {'date1': roll_median_date1, 'date2': roll_median_date2, ...}], ...other id's}
 
     next = input_file.readline()
     while next != '':
@@ -112,10 +113,10 @@ if __name__ == "__main__":
             input_line = next.split('|')
             
             # only consider the record if OTHER_ID is empty, CMTE_ID is non-empty, and TRANSACTION_AMT is non-empty
-            if len(input_line) == TOTAL_COLUMNS and input_line[OTHER_ID_index] == ''         and input_line[CMTE_ID_index] != '' and input_line[TRANSACTION_AMT_index] !='':
+            if len(input_line) == TOTAL_COLUMNS and input_line[OTHER_ID_index] == ''         and input_line[CMTE_ID_index] != '' and input_line[TRANSACTION_AMT_index] !='' and is_amount_valid(input_line[TRANSACTION_AMT_index]):
                 
                 input_line[-1] = input_line[-1].rstrip() # remove newline character
-                input_line_data_list = format_relevant_entries(input_line) # id, zip, date, contribution
+                input_line_data_list = get_relevant_entries(input_line) # id, zip, date, contribution
 
                 input_line_id = input_line_data_list[0]
                 input_line_zip = input_line_data_list[1]
@@ -124,21 +125,24 @@ if __name__ == "__main__":
 
 
                 if input_line_id in recipient_info_dict:
-                    if input_line_zip in recipient_info_dict[input_line_id][0]:
-                        recipient_info_dict[input_line_id][0][input_line_zip].add(input_line_contribution)
-                        
-                        median = recipient_info_dict[input_line_id][0][input_line_zip].get_median()
-                        num_contr = recipient_info_dict[input_line_id][0][input_line_zip].size
-                        total = recipient_info_dict[input_line_id][0][input_line_zip].total
-                        
-                        write_to_zipcode_file(input_line_id,
-                                          input_line_zip,
-                                          median,
-                                          num_contr,
-                                          total)
-                    else:
-                        create_zip_entry(input_line_id, input_line_zip, input_line_date, input_line_contribution)
-                    
+                    if input_line_zip.isnumeric():
+                        input_line_zip = format_zip(input_line_zip)
+                        if input_line_zip in recipient_info_dict[input_line_id][0]:
+                            recipient_info_dict[input_line_id][0][input_line_zip].add(input_line_contribution)
+                            
+                            median = recipient_info_dict[input_line_id][0][input_line_zip].get_median()
+                            num_contr = recipient_info_dict[input_line_id][0][input_line_zip].size
+                            total = recipient_info_dict[input_line_id][0][input_line_zip].total
+                            
+                            write_to_zipcode_file(input_line_id,
+                                              input_line_zip,
+                                              median,
+                                              num_contr,
+                                              total)
+                        else:
+                            create_zip_entry(input_line_id, input_line_zip, input_line_date, input_line_contribution)
+
+
                     if input_line_date in recipient_info_dict[input_line_id][1]:
                         recipient_info_dict[input_line_id][1][input_line_date].add(input_line_contribution)
 
@@ -149,6 +153,7 @@ if __name__ == "__main__":
     
         next = input_file.readline()
 
+    # create a DataFrame
     for key, dict_list in recipient_info_dict.items():
         for date in dict_list[1]:
             dataframe_dict["ID"].append(key)
@@ -161,8 +166,10 @@ if __name__ == "__main__":
 
     df["Date"] = pd.to_datetime(df.Date)
 
+    # sort the DataFrame
     df.sort_values(by=["ID", "Date"], inplace=True)
 
+    # write to medianvals_by_date.txt
     df.to_csv(output_filename_date,
               header=None, index=None, sep='|', date_format="%m%d%Y")
 
