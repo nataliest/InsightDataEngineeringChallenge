@@ -15,13 +15,7 @@ My approach to the challenge can be summarized as follows:
 
 While processing the data, I am storing the values corresponding to each ID, zip code, and date using Python dictionaries (hash tables). After reading each line (if all relevant fields contain valid data), I update the dictionaries accordingly.
 
-recipient_info_dict =   {'id1': [ {'zip1': roll_median_zip1, 'zip2': roll_median_zip2, ...}, # zip codes dictionary for id1
-                                            {'date1': roll_median_date1, 'date2': roll_median_date2, ...} ], # dates dictionary for id1
-                                    'id2':[{'zip1': roll_median_zip1, 'zip2': roll_median_zip2, ...}, # zip codes dictionary for id2
-                                            {'date1': roll_median_date1, 'date2': roll_median_date2, ...}],
-                                    ...other id's...} # dates dictionary for id1
-
-In recipient_info_dict, key is the IDs and value is a list of two dictionaries: zip code and date dictionaries.
+In recipient_info_dict (see code comments for detail), key is the IDs and value is a list of two dictionaries: zip code and date dictionaries.
 In zip code dictionaries, keys are the zip codes and values are RollingMedian objects.
 In date dictionaries, keys are the dates and values are RollingMedian objects.
 Thus, I am calculating medians and keeping track of contributions for every unique zip code and date for each ID.
