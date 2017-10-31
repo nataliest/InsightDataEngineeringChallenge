@@ -30,8 +30,8 @@ The source code resides in /src/ folder; the folder contains:
 3) rolling_median.py.
 The latter defines a class called RollingMedian that allows for calculating the rolling median, as well as getting the total amount and the number of contributions streamed so far.
 
-<h2>Dependencies and packages:</h2>
-pandas: http://pandas.pydata.org/
+Dependencies and packages:
+- pandas: http://pandas.pydata.org/
 
 Running instructions:
 - The project was written in Python 3;
